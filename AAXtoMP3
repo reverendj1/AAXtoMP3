@@ -594,6 +594,20 @@ get_bitrate() {
   get_metadata_value bitrate | $GREP --only-matching '[0-9]\+'
 }
 
+# -----
+# returns file system safe file or dir name
+# path_type can be "file" or "dir"
+fix_path_name() {
+  path="$1"
+  path_type="$2"
+  path_regex='<>:\\"|?*'
+
+  if [[ "$2" != "dir" ]]; then
+    path_regex="${path_regex}\/"
+  fi
+  echo "${path//[${path_regex}]/-}"
+}
+
 # Save the original value, since in the for loop we overwrite
 # $audibleCli in case the file is aaxc. If the file is the
 # old aax, reset the variable to be the one passed by the user
@@ -700,6 +714,7 @@ do
     # The Default
     currentDirNameScheme="${genre}/${artist}/${title}"
   fi
+  currentDirNameScheme="$(fix_path_name "${currentDirNameScheme}" "dir" )"
 
   # If we defined a target directory, use it. Otherwise use the location of the AAX file
   if [ "x${targetdir}" != "x" ] ; then
@@ -715,6 +730,7 @@ do
     # The Default
     currentFileNameScheme="${title}"
   fi
+  currentFileNameScheme="$(fix_path_name "${currentFileNameScheme}" "file" )"
   output_file="${output_directory}/${currentFileNameScheme}.${extension}"
 
   if [[ "${noclobber}" = "1" ]] && [[ -d "${output_directory}" ]]; then
@@ -876,6 +892,7 @@ do
           # The Default
           chapter_title="${title}-$(printf %0${#chaptercount}d $chapternum) ${chapter}"
         fi
+        chapter_title="$(fix_path_name "${chapter_title}" "file")"
         chapter_file="${output_directory}/${chapter_title}.${extension}"
 
         # Since the .aax file allready got converted we can use
